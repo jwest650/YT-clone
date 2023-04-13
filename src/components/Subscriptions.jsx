@@ -9,13 +9,20 @@ const Subscriptions = ({ data }) => {
         <div>
             <Link to={`channel/${data}`}>
                 <div className="flex items-center space-x-4 ">
-                    <div className="w-[25px] h-[25px] rounded-full">
+                    {channel?.img ? (
                         <img
                             src={channel?.img}
                             alt=""
-                            className="w-full h-full object-contain rounded-full"
+                            className=" w-[25px] h-[25px] object-contain rounded-full  "
                         />
-                    </div>
+                    ) : (
+                        <div className=" w-[25px] h-[25px] object-contain rounded-full  bg-orange-500 text-white flex flex-col items-center justify-center capitalize">
+                            <p className="text-2xl">
+                                {channel?.name?.slice(0, 1)}
+                            </p>
+                        </div>
+                    )}
+
                     <h1 className="capitalize">{channel?.name}</h1>
                 </div>
             </Link>

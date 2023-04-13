@@ -7,27 +7,40 @@ import useUserHook from "../redux/userHook";
 import useChannelHook from "./../redux/ChannelHook";
 import * as timeago from "timeago.js";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 const Channel = () => {
     const { user } = useUserHook();
+
     const [videos, setvideos] = useState([]);
     let { channelId } = useParams();
     let { channel } = useChannelHook(channelId);
     const [subscribed, setsubscribed] = useState("");
+    const { data: userinfo } = useQuery(["userinfo", subscribed], async () => {
+        let { data } = await axios(`/users/find/${user._id}`);
 
+        return data;
+    });
     const subscribe = async () => {
         if (
-            user &&
-            channel._id !== user._id &&
-            !user.subscribedUsers.includes(channel._id)
+            userinfo &&
+            channel._id !== userinfo?._id &&
+            !userinfo.subscribedUsers.includes(channel._id)
         ) {
-            const { data } = await axios.put(`/users/sub/${channel._id}`);
-
+            await axios.put(`/users/sub/${channel._id}`);
             setsubscribed("subscribed");
+        }
+        if (
+            userinfo &&
+            channel._id !== userinfo?._id &&
+            userinfo?.subscribedUsers.includes(channel._id)
+        ) {
+            await axios.put(`/users/unsub/${channel._id}`);
+            setsubscribed("subscribe");
         }
     };
     useLayoutEffect(() => {
-        if (user?.subscribedUsers?.includes(channel?._id)) {
+        if (userinfo?.subscribedUsers?.includes(channel?._id)) {
             setsubscribed("subscribed");
         } else {
             setsubscribed("subscribe");
@@ -51,13 +64,20 @@ const Channel = () => {
             <section className="bg-[#F9F9F9] p-5 px-4 space-y-3">
                 <header className="flex justify-between items-center  ">
                     <div className="flex space-x-4 items-center">
-                        <div className="w-[55px] h-[55px]">
+                        {channel?.img ? (
                             <img
                                 src={channel?.img}
                                 alt=""
-                                className="w-full h-full object-contain rounded-full"
+                                className="rounded-full w-[55px] h-[55px]"
                             />
-                        </div>
+                        ) : (
+                            <div className=" w-[40px] h-[40px] object-contain rounded-full  bg-orange-500 text-white flex justify-center flex-col items-center capitalize">
+                                <p className="text-4xl">
+                                    {channel?.name?.slice(0, 1)}
+                                </p>
+                            </div>
+                        )}
+
                         <div>
                             <h1 className="text-lg capitalize">
                                 {channel?.name}
@@ -97,11 +117,19 @@ const Channel = () => {
                                     />
                                 </div>
                                 <div className="flex  space-x-3">
-                                    <img
-                                        src={channel?.img}
-                                        alt=""
-                                        className=" w-[35px] h-[35px] object-contain rounded-full mt-2 "
-                                    />
+                                    {channel?.img ? (
+                                        <img
+                                            src={channel?.img}
+                                            alt=""
+                                            className="rounded-full w-[35px] h-[40px]"
+                                        />
+                                    ) : (
+                                        <div className=" w-[35px] h-[35px] object-contain rounded-full  bg-orange-500 text-white flex justify-center flex-col items-center capitalize">
+                                            <p className="text-4xl">
+                                                {channel?.name?.slice(0, 1)}
+                                            </p>
+                                        </div>
+                                    )}
                                     <div className="text-gray-500 ">
                                         <p className="font-bold capitalize  text-black">
                                             {v?.title}
